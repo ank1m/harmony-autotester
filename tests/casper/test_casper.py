@@ -64,7 +64,7 @@ def ensure_correct_files_created(harmony_result_json_links: list[dict]):
 
     """
     data_links = [link for link in harmony_result_json_links if link['rel'] == 'data']
-    assert len(data_links) > 1, 'Should have at least 1 COG output'
+    assert len(data_links) == 1, 'Should have at least 1 CASPER output'
 
     # All output files should have the correct suffix and extension.
     assert all(link['href'].endswith('_reformatted.zip') for link in data_links), (
