@@ -55,9 +55,9 @@ def test_sambah(failed_tests, harmony_client, service_collection, earthaccess_lo
 
         granule_id = [granule['meta']['concept-id'] for granule in selected_granules]
 
-        # Reduce each side of granule spatial box by 5%
-        boundary_reduction = 5.0 
-        west, east, south, north = generate_partial_spatial_box(selected_granules, boundary_reduction)
+        # Want output box to be 90% of orginal
+        box_output_size = 90.0 
+        west, east, south, north = generate_partial_spatial_box(selected_granules, box_output_size)
         start_time, stop_time = generate_near_full_temporal_range(selected_granules)
 
         cap_request = CapabilitiesRequest(

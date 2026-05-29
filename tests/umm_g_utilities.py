@@ -74,17 +74,18 @@ def get_bounding_box(granule: dict[str, Any]) -> tuple[float, float, float, floa
 
 def generate_partial_spatial_box(
     granules: list[dict[str, Any]],
-    reduction_percent: float
+    output_size: float
 ) -> tuple[float, float, float, float]:
     """Return a bounding box for spatial subsetting tests.
 
-    Reduce each granule bounding box by the specified percent on 
-    every side
+    Reduce each granule bounding box to the requested output size 
+    by reducing each side equally
     then use the min/max extents of all reduced granules
     to create a combined spatial subset box.
     """
     boxes = [get_bounding_box(granule) for granule in granules]
 
+    reduction_percent = (100.0 - output_size) / 2.0
     interior_boxes: list[tuple[float, float, float, float]] = [
         (
             west + (east - west) * (reduction_percent / 100.0),
