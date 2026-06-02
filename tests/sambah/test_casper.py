@@ -92,7 +92,6 @@ def ensure_correct_files_created(harmony_result_json_links: list[dict]):
     assert len(data_links) == 1, 'Should have 1 concatenated output file'
 
     # All output files should have the correct processing tags.
-    processing_tags = ['subsetted', 'reformatted']
-    assert all(
-        all(tag in link['href'] for tag in processing_tags) for link in data_links
-    ), 'Not all data links contain all processing tags'
+    assert all(link['href'].endswith('_subsetted_reformatted.zip') for link in data_links), (
+        'Data link is not .zip file'
+    )
