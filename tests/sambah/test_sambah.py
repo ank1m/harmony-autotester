@@ -57,7 +57,7 @@ def test_sambah(failed_tests, harmony_client, service_collection, earthaccess_lo
 
         # Want output box to be 90% of orginal
         box_output_size = 90.0 
-        west, east, south, north = generate_partial_spatial_box(selected_granules, box_output_size)
+        west, east, south, north = generate_partial_spatial_box(selected_granules, output_size=90.0,)
         start_time, stop_time = generate_near_full_temporal_range(selected_granules)
 
         cap_request = CapabilitiesRequest(

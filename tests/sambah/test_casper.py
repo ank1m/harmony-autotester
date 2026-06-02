@@ -34,7 +34,7 @@ def test_sambah_casper(failed_tests, harmony_client, service_collection, earthac
 
         # Want output box to be 60% of orginal
         box_output_size = 60.0 
-        west, east, south, north = generate_partial_spatial_box(selected_granule, box_output_size)
+        west, east, south, north = generate_partial_spatial_box(selected_granule, output_size=60.0,)
 
         harmony_request = AutotesterRequest(
             collection=Collection(id=service_collection['concept_id']),
