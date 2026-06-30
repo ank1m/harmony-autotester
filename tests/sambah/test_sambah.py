@@ -8,9 +8,9 @@ from harmony import BBox, CapabilitiesRequest, Collection
 
 from tests.conftest import AutotesterRequest
 from tests.umm_g_utilities import (
-    generate_near_full_spatial_box,
     generate_near_full_temporal_range,
     generate_near_full_variable_subset,
+    generate_partial_spatial_box,
     get_granule_filename,
 )
 
@@ -55,7 +55,15 @@ def test_sambah(failed_tests, harmony_client, service_collection, earthaccess_lo
 
         granule_id = [granule['meta']['concept-id'] for granule in selected_granules]
 
+<<<<<<< HEAD
         west, east, south, north = generate_near_full_spatial_box(selected_granules)
+=======
+        # Want output box to be 90% of orginal
+        west, east, south, north = generate_partial_spatial_box(
+            selected_granules,
+            output_size=90.0,
+        )
+>>>>>>> upstream/main
         start_time, stop_time = generate_near_full_temporal_range(selected_granules)
 
         cap_request = CapabilitiesRequest(

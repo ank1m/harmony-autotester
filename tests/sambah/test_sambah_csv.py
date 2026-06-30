@@ -1,12 +1,18 @@
-"""pytest suite for Harmony net2cog converter."""
+"""pytest suite for Harmony casper converter in sambah chain."""
 
-from harmony import Collection
+import earthaccess
+from harmony import BBox, Collection
 
 from tests.conftest import AutotesterRequest
+from tests.umm_g_utilities import (
+    generate_partial_spatial_box,
+)
 
 
-def test_net2cog(failed_tests, harmony_client, service_collection):
-    """Run a request against net2cog and make sure it is successful.
+def test_sambah_casper(
+    failed_tests, harmony_client, service_collection, earthaccess_login
+):
+    """Run a request against sambah-casper chain and make sure it is successful.
 
     As a lightweight example, this test will check the Harmony request
     returned a successful status and the output STAC contains only expected
@@ -17,13 +23,31 @@ def test_net2cog(failed_tests, harmony_client, service_collection):
     fixtures common to all Harmony services under test.
 
     """
-    harmony_request = AutotesterRequest(
-        collection=Collection(id=service_collection['concept_id']),
-        max_results=1,
-        format='image/tiff',
-    )
-
     try:
+        harmony_request = None
+
+        granules = earthaccess.search_data(
+            collection_concept_id=service_collection['concept_id'], count=1
+        )
+        assert granules, 'The collection has no granules'
+
+        selected_granule = [granules[0]]
+
+        granule_id = selected_granule[0]['meta']['concept-id']
+
+        # Want output box to be 60% of orginal
+        west, east, south, north = generate_partial_spatial_box(
+            selected_granule,
+            output_size=60.0,
+        )
+
+        harmony_request = AutotesterRequest(
+            collection=Collection(id=service_collection['concept_id']),
+            spatial=BBox(west, south, east, north),
+            granule_id=granule_id,
+            format='text/csv',
+        )
+
         # Submit the job and get the JSON output once completed
         harmony_job_id = harmony_client.submit(harmony_request)
         result_json = harmony_client.result_json(harmony_job_id)
@@ -37,11 +61,17 @@ def test_net2cog(failed_tests, harmony_client, service_collection):
         ensure_correct_files_created(result_json['links'])
     except AssertionError as exception:
         # Cache error message and re-raise the AssertionError to fail the test
+        url = (
+            'NOT_APPLICABLE'
+            if harmony_request is None
+            else harmony_client.request_as_url(harmony_request)
+        )
+
         failed_tests.append(
             {
                 **service_collection,
                 'error': str(exception),
-                'url': harmony_client.request_as_url(harmony_request),
+                'url': url,
             }
         )
         raise
@@ -59,14 +89,14 @@ def ensure_correct_files_created(harmony_result_json_links: list[dict]):
 
     Will ensure:
 
-    * At least one "data" file is included in the output STAC.
-    * Every output file has the expected file suffix: `_reformatted.tif`.
+    * One "data" file is included in the output STAC.
+    * Output file has the expected tags in the filename.
 
     """
     data_links = [link for link in harmony_result_json_links if link['rel'] == 'data']
-    assert len(data_links) > 1, 'Should have at least 1 COG output'
+    assert len(data_links) == 1, 'Should have 1 subsetted and reformatted output file'
 
-    # All output files should have the correct suffix and extension.
-    assert all(link['href'].endswith('_reformatted.tif') for link in data_links), (
-        'Not all data links are GeoTIFFs'
-    )
+    # All output files should have the correct processing tag.
+    assert all(
+        link['href'].endswith('_subsetted_reformatted.zip') for link in data_links
+    ), 'Data link is not .zip file'

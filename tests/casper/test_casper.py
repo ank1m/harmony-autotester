@@ -1,12 +1,12 @@
-"""pytest suite for Harmony net2cog converter."""
+"""pytest suite for Harmony casper converter."""
 
 from harmony import Collection
 
 from tests.conftest import AutotesterRequest
 
 
-def test_net2cog(failed_tests, harmony_client, service_collection):
-    """Run a request against net2cog and make sure it is successful.
+def test_casper(failed_tests, harmony_client, service_collection):
+    """Run a request against casper and make sure it is successful.
 
     As a lightweight example, this test will check the Harmony request
     returned a successful status and the output STAC contains only expected
@@ -20,7 +20,7 @@ def test_net2cog(failed_tests, harmony_client, service_collection):
     harmony_request = AutotesterRequest(
         collection=Collection(id=service_collection['concept_id']),
         max_results=1,
-        format='image/tiff',
+        format='text/csv',
     )
 
     try:
@@ -59,14 +59,14 @@ def ensure_correct_files_created(harmony_result_json_links: list[dict]):
 
     Will ensure:
 
-    * At least one "data" file is included in the output STAC.
-    * Every output file has the expected file suffix: `_reformatted.tif`.
+    * One "data" file is included in the output STAC.
+    * Every output file has the expected file suffix: `_reformatted.zip`.
 
     """
     data_links = [link for link in harmony_result_json_links if link['rel'] == 'data']
-    assert len(data_links) > 1, 'Should have at least 1 COG output'
+    assert len(data_links) == 1, 'Should have 1 CASPER output file'
 
     # All output files should have the correct suffix and extension.
-    assert all(link['href'].endswith('_reformatted.tif') for link in data_links), (
-        'Not all data links are GeoTIFFs'
+    assert all(link['href'].endswith('_reformatted.zip') for link in data_links), (
+        'Data link is not .zip file'
     )
