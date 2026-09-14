@@ -2,4 +2,4 @@
 # First install packages used by all tests:
 -r ../common_requirements.txt
 # Then add requirements specific to this test suite:
-batchee>=1.5.2
+batchee>=1.5.3
