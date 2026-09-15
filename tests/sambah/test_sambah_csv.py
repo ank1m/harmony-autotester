@@ -51,7 +51,7 @@ def test_sambah_casper(
         # Submit the job and get the JSON output once completed
         harmony_job_id = harmony_client.submit(harmony_request)
         result_json = harmony_client.result_json(harmony_job_id)
-
+        print(result_json)
         # Check the response was successful
         assert result_json['status'] == 'successful', (
             f'Harmony request failed:\n\n{result_json["message"]}'
