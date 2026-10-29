@@ -114,6 +114,32 @@ def service_collection(request):
     """Fixture to parametrize tests to iterate over associated collections."""
     return request.param
 
+from tenacity import (
+    Retrying,
+    stop_after_attempt,
+    wait_exponential,
+    wait_random,
+)
+
+
+class RetryingHarmonyClient:
+    """Proxy around harmony.Client that retries any failure."""
+
+    RETRIED_METHODS = {'submit', 'result_json'}
+
+    def __init__(self, client: Client, attempts: int = 4):
+        self._client = client
+        self._retrying = Retrying(
+            stop=stop_after_attempt(attempts),
+            wait=wait_exponential(multiplier=2, min=2, max=60) + wait_random(0, 2),
+            reraise=True,
+        )
+
+    def __getattr__(self, name):
+        attr = getattr(self._client, name)
+        if name in self.RETRIED_METHODS and callable(attr):
+            return lambda *args, **kwargs: self._retrying(attr, *args, **kwargs)
+        return attr
 
 @pytest.fixture(scope='session')
 def harmony_client():
@@ -121,10 +147,10 @@ def harmony_client():
     environment_string = os.environ.get('EARTHDATA_ENVIRONMENT')
     earthdata_username = os.environ.get('EARTHDATA_USERNAME')
     earthdata_password = os.environ.get('EARTHDATA_PASSWORD')
-    return Client(
+    return RetryingHarmonyClient(Client(
         auth=(earthdata_username, earthdata_password),
         env=environment_mapping.get(environment_string),
-    )
+    ))
 
 
 @pytest.fixture(scope='session')
