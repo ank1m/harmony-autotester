@@ -45,8 +45,70 @@ class AutotesterRequest(Request):
 
 service_collections = json.loads(os.environ.get('SERVICE_COLLECTIONS', '[]'))
 
+from tenacity import (
+    Retrying,
+    stop_after_attempt,
+    wait_exponential,
+    wait_random,
+)
+
+RETRY_EVENTS = []
+
+def record_retry(retry_state):
+    exc = retry_state.outcome.exception()
+    RETRY_EVENTS.append(
+        f'{retry_state.fn.__name__} attempt {retry_state.attempt_number} '
+        f'failed: {exc!r}; retried after {retry_state.next_action.sleep:.0f}s'
+    )
+
+class RetryingHarmonyClient:
+    """Proxy around harmony.Client that retries any failure."""
+
+    RETRIED_METHODS = {'submit', 'result_json'}
+
+    def __init__(self, client: Client, attempts: int = 4):
+        self._client = client
+        self._retrying = Retrying(
+            stop=stop_after_attempt(attempts),
+            wait=wait_exponential(multiplier=2, min=2, max=60) + wait_random(0, 2),
+            before_sleep=record_retry,
+            reraise=True,
+        )
+
+    def __getattr__(self, name):
+        attr = getattr(self._client, name)
+        if name in self.RETRIED_METHODS and callable(attr):
+            return lambda *args, **kwargs: self._retrying(attr, *args, **kwargs)
+        return attr
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Attach this test's tenacity retries to its report."""
+    report = (yield).get_result()
+    if RETRY_EVENTS:
+        report.user_properties.append(('retries', list(RETRY_EVENTS)))
+        RETRY_EVENTS.clear()
+
+
+def pytest_terminal_summary(terminalreporter):
+    """Print tenacity retries from all tests in the final pytest output."""
+    lines = [
+        f'{rep.nodeid}: {event}'
+        for reports in terminalreporter.stats.values()
+        for rep in reports
+        for name, events in getattr(rep, 'user_properties', [])
+        if name == 'retries'
+        for event in events
+    ]
+    if lines:
+        terminalreporter.section('tenacity retries')
+        for line in lines:
+            terminalreporter.write_line(line)
+
 
 failed_tests_key = pytest.StashKey[list[dict]]()
+
 
 
 def pytest_configure(config: pytest.Config) -> None:
@@ -113,33 +175,6 @@ def pytest_sessionfinish(session, exitstatus):
 def service_collection(request):
     """Fixture to parametrize tests to iterate over associated collections."""
     return request.param
-
-from tenacity import (
-    Retrying,
-    stop_after_attempt,
-    wait_exponential,
-    wait_random,
-)
-
-
-class RetryingHarmonyClient:
-    """Proxy around harmony.Client that retries any failure."""
-
-    RETRIED_METHODS = {'submit', 'result_json'}
-
-    def __init__(self, client: Client, attempts: int = 4):
-        self._client = client
-        self._retrying = Retrying(
-            stop=stop_after_attempt(attempts),
-            wait=wait_exponential(multiplier=2, min=2, max=60) + wait_random(0, 2),
-            reraise=True,
-        )
-
-    def __getattr__(self, name):
-        attr = getattr(self._client, name)
-        if name in self.RETRIED_METHODS and callable(attr):
-            return lambda *args, **kwargs: self._retrying(attr, *args, **kwargs)
-        return attr
 
 @pytest.fixture(scope='session')
 def harmony_client():
