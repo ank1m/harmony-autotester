@@ -125,6 +125,45 @@ concept ID is used as it is immutable. It is possible to also configure tests
 only for either UAT or production by only including information for the test
 directory in the appropriate mapping.
 
+### Running a test suite locally:
+
+The test fixtures read the same environment variables the nightly workflow
+sets. Install the requirements for the test suite and for the `bin` scripts:
+
+```bash
+pip install -r bin/requirements.txt -r tests/<service>/requirements.txt
+```
+
+then run your tests:
+```bash
+export EARTHDATA_ENVIRONMENT=UAT  # or production
+export EARTHDATA_USERNAME=<your EDL username>
+export EARTHDATA_PASSWORD=<your EDL password>
+export TEST_DIRECTORY=tests/<service>/
+
+# Populate SERVICE_COLLECTIONS with every collection associated with the
+# service mapped to this test directory, as the nightly workflow would:
+export SERVICE_COLLECTIONS=$(python bin/get_service_collections.py tests/<service>)
+
+# Run the tests in series
+pytest tests/<service>/
+
+# Alternative: Run the tests in parallel using pytest-xdist plugin
+pytest -n auto tests/<service>/
+```
+
+`bin/get_service_collections.py` looks up the UMM-S concept ID mapped to the
+test directory in the service mapping file for `EARTHDATA_ENVIRONMENT` and
+queries CMR GraphQL for the associated collections. To test a single
+collection, set `SERVICE_COLLECTIONS` by hand, e.g.:
+
+```bash
+export SERVICE_COLLECTIONS='[{"concept_id": "C1234-PROV", "short_name": "NAME", "version": "1"}]'
+```
+
+`test_output.json` is written to the test directory unless `TEST_DIRECTORY`
+is set.
+
 ### Common test fixtures:
 
 `tests/conftest.py` contains test fixtures, classes and functions that should
@@ -165,6 +204,21 @@ should include those dependencies by using the following line:
 -r ../common_requirements.txt
 ```
 
+### Parallelisation:
+
+The Harmony Autotester uses the `pytest-xdist` plug-in to manage parallelism
+within a single test suite. `pytest-xdist` is included in the overall packages
+all test suites use, via `tests/common_requirements.txt`. By specifying
+`-n auto` as a flag in the command line invocation of `pytest`, `pytest-xdist`
+will create an appropriate number of workers based on the number of available
+CPUs. As the majority of time spent during testing is waiting for Harmony to
+complete requests, this should significantly reduce the overall run time of
+each test suite.
+
+The main implication of using the `pytest-xdist` plug-in is that session-scoped
+`pytest` fixtures are not shared between workers. Instead there is one instance
+of the fixture per worker.
+
 ## CI/CD workflows:
 
 These are found in the `.github/workflows` directory:
@@ -178,10 +232,23 @@ These are found in the `.github/workflows` directory:
 ## Releasing:
 
 The Harmony Autotester does not produce published artefacts capturing changes
-to the tset suites, as the repository itself _is_ the artefact. However, it is
+to the test suites, as the repository itself _is_ the artefact. However, it is
 useful to denote when large pieces of functionality are added or updated to
 the overall autotester, such as changing the core CI/CD or adding/updating
 individual test suites.
+
+### Which version to bump:
+
+* Major - when breaking changes are made. For example the interface between the
+  Autotester CI/CD and the individual test suites.
+* Minor - when non-breaking additions are made. This includes helper functionality
+  or other additional features of the Autotester harness itself, or adding a
+  whole new test suite.
+* Patch - when minor changes are made to existing tests or the overall Autotester
+  harness. This might be a bug fix, or providing additional checks in existing
+  tests.
+
+### Documenting changes:
 
 Version information is captured by two files:
 

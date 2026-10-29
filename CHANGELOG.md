@@ -4,7 +4,70 @@ The Harmony Autotester follows semantic versioning. All notable changes to this
 project will be documented in this file. The format is based on [Keep a
 Changelog](http://keepachangelog.com/en/1.0.0/).
 
-## [vX.Y.Z] - 2026-05-07
+## [v1.7.0] - 2026-10-27
+
+### Added:
+
+- DAS-2516 - Adds tests for the `sds/HOSS-regridder-reformatter` service chain
+  in production and UAT. All variables are requested in these tests; net2cog
+  converts only compatible variables.
+
+## [v1.6.1] - 2026-10-19
+
+### Changed:
+
+- Switched smap-l2-gridder tests to use `concept_id` when grabbing granules for
+  the test.
+
+### Fixed:
+
+- Updated `umm_g_utilities.py` `get_bounding_box` to fail in a way that is
+  captured by the test output when the granule has no spatial information
+  associated with it.
+
+## [v1.6.0] - 2026-10-13
+
+### Added:
+
+- DAS-2515 - Adds tests for the `sds/HOSS-projection-gridded` service chain in
+  production and UAT. Similar to [v1.5.0], for each associated collection, a granule
+  is requested with a variable and bounding box subset, which calls HOSS and MaskFill,
+  and checks the request is successful.
+
+
+## [v1.5.0] - 2026-10-01
+
+### Added:
+
+- DAS-2514 - Adds tests for the `sds/HOSS-geographic` service chain in
+  production and UAT. For each associated collection, a granule is requested
+  with a variable and bounding box subset and checks the request is successful.
+
+### Changed:
+
+- DAS-2514 - `get_configured_variable_names` returns `['all']` for collections with no
+  configured variables.
+
+## [v1.4.0] - 2026-09-29
+
+### Changed:
+
+- The Autotest CI/CD has been updated to use the `pytest-xdist` plugin and
+  parallelise test execution. The number of workers will default to the
+  available CPUs on the GitHub test runner executing the tests. This should
+  significantly improve runtime, which already takes several hours for some of
+  the few service chains configured in the Autotester.
+
+## [v1.3.0] - 2026-09-23
+
+### Added:
+
+- DAS-2519 - Added `bin/get_service_collections.py`, a local development helper
+  that prints every collection associated with a test directory's service in
+  the format expected by the `SERVICE_COLLECTIONS` environment variable.
+  Parametrised test IDs now include the collection short name, version and
+  concept ID, and `TEST_DIRECTORY` defaults to the directory of the tests
+  being run.
 
 ### Fixed:
 
@@ -12,6 +75,8 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
   by requesting the correct key from the result dictionary.
 
 ### Changed:
+
+- Replaced manual batchee grouping with corresponding function from batchee library
 
 - Release notes published in GitHub releases will now include a list of commit
   messages since the last release.
@@ -51,7 +116,14 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 - TRT-628 - Implemented scaffolding to invoke all defined test suites.
 - TRT-629 - Implemented GitHub issue publication for failures.
 
-[Unreleased]: https://github.com/nasa/harmony-autotester/compare/1.2.1...HEAD
+[Unreleased]: https://github.com/nasa/harmony-autotester/compare/1.7.0...HEAD
+[v1.7.0]: https://github.com/nasa/harmony-autotester/releases/tag/1.7.0
+[v1.6.1]: https://github.com/nasa/harmony-autotester/releases/tag/1.6.1
+[v1.6.0]: https://github.com/nasa/harmony-autotester/releases/tag/1.6.0
+[v1.5.0]: https://github.com/nasa/harmony-autotester/releases/tag/1.5.0
+[v1.4.0]: https://github.com/nasa/harmony-autotester/releases/tag/1.4.0
+[v1.3.0]: https://github.com/nasa/harmony-autotester/releases/tag/1.3.0
+[v1.2.2]: https://github.com/nasa/harmony-autotester/releases/tag/1.2.2
 [v1.2.1]: https://github.com/nasa/harmony-autotester/releases/tag/1.2.1
 [v1.2.0]: https://github.com/nasa/harmony-autotester/releases/tag/1.2.0
 [v1.1.0]: https://github.com/nasa/harmony-autotester/releases/tag/1.1.0
