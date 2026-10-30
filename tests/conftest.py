@@ -66,14 +66,14 @@ class RetryingHarmonyClient:
 
     RETRIED_METHODS = {'submit', 'result_json'}
 
-    def __init__(self, client: Client, attempts: int = 4):
-        self._client = client
+    def __init__(self, *client_args, attempts: int = 4, **client_kwargs):
         self._retrying = Retrying(
             stop=stop_after_attempt(attempts),
             wait=wait_exponential(multiplier=2, min=2, max=60) + wait_random(0, 2),
             before_sleep=record_retry,
             reraise=True,
         )
+        self._client = self._retrying(Client, *client_args, **client_kwargs)
 
     def __getattr__(self, name):
         attr = getattr(self._client, name)
@@ -182,10 +182,10 @@ def harmony_client():
     environment_string = os.environ.get('EARTHDATA_ENVIRONMENT')
     earthdata_username = os.environ.get('EARTHDATA_USERNAME')
     earthdata_password = os.environ.get('EARTHDATA_PASSWORD')
-    return RetryingHarmonyClient(Client(
+    return RetryingHarmonyClient(
         auth=(earthdata_username, earthdata_password),
         env=environment_mapping.get(environment_string),
-    ))
+    )
 
 
 @pytest.fixture(scope='session')
