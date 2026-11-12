@@ -77,8 +77,8 @@ def test_sambah(failed_tests, harmony_client, service_collection, earthaccess_lo
             granule_id=granule_id,
         )
 
-        logger.info(selected_variables)
-        logger.info(harmony_client.request_as_url(harmony_request))
+        logger.warning(selected_variables)
+        logger.warning(harmony_client.request_as_url(harmony_request))
 
         assert harmony_request.is_valid()
         
