@@ -96,6 +96,8 @@ jobs:
           EARTHDATA_PASSWORD: ${{ secrets.earthdata_password }}
           SERVICE_COLLECTIONS: ${{ toJSON(matrix.service.collections) }}
           TEST_DIRECTORY: ${{ steps.find_test_directory.outputs.test_directory }}
+          COLUMNS: "1000"
+          PYTHONUNBUFFERED: "1"
 
       - name: Create or update GitHub issues for collections with updated results
         # This step runs even if there are no failures, because some collections
