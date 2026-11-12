@@ -137,7 +137,7 @@ def get_service_collections(
                     }
                     for collection in json_data['data']['service']['collections'][
                         'items'
-                    ]
+                    ] if 'RAD' in collection['shortName']
                 ]
             )
 
