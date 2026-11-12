@@ -13,6 +13,9 @@ from tests.umm_g_utilities import (
     get_granule_filename,
 )
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 def test_sambah(failed_tests, harmony_client, service_collection, earthaccess_login):
     """Run a request against sambah and make sure it is successful.
@@ -74,8 +77,8 @@ def test_sambah(failed_tests, harmony_client, service_collection, earthaccess_lo
             granule_id=granule_id,
         )
 
-        print(selected_variables)
-        print(harmony_client.request_as_url(harmony_request))
+        logger.info(selected_variables)
+        logger.info(harmony_client.request_as_url(harmony_request))
 
         assert harmony_request.is_valid()
         
