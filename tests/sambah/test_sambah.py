@@ -74,8 +74,11 @@ def test_sambah(failed_tests, harmony_client, service_collection, earthaccess_lo
             granule_id=granule_id,
         )
 
+        print(selected_variables)
         print(harmony_client.request_as_url(harmony_request))
 
+        assert harmony_request.is_valid()
+        
         # Submit the job and get the JSON output once completed
         harmony_job_id = harmony_client.submit(harmony_request)
         result_json = harmony_client.result_json(harmony_job_id)
