@@ -35,6 +35,7 @@ def test_hoss_geographic(
         )
 
         # Submit the job and get the JSON output once completed
+        print(harmony_client.request_as_url(harmony_request))
         harmony_job_id = harmony_client.submit(harmony_request)
         result_json = harmony_client.result_json(harmony_job_id)
 
