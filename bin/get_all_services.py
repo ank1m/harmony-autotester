@@ -137,7 +137,7 @@ def get_service_collections(
                     }
                     for collection in json_data['data']['service']['collections'][
                         'items'
-                    ] if 'RAD' in collection['shortName']
+                    ]
                 ]
             )
 
@@ -262,7 +262,7 @@ def output_all_services(harmony_services: list[dict]) -> None:
 
     """
     with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as file_handler:
-        print(f'all_services={json.dumps([s for s in harmony_services if "sambah" in s["name"].lower()])}', file=file_handler)
+        print(f'all_services={json.dumps([s for s in harmony_services if "net2cog" in s["name"].lower()])}', file=file_handler)
 
 if __name__ == '__main__':
     # Retrieve environment-specific information:
