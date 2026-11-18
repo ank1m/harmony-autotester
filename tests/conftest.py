@@ -40,6 +40,8 @@ class AutotesterRequest(Request):
         """Propagate kwargs and add a "harmony-autotester" label."""
         labels = kwargs.get('labels', [])
         labels.append('harmony-autotester')
+        current_test = os.environ.get("PYTEST_CURRENT_TEST", "")
+        labels.append(current_test.split("::")[0])
         super().__init__(**kwargs, labels=labels)
 
 
