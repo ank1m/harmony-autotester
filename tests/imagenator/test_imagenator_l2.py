@@ -1,16 +1,10 @@
 """pytest suite for Harmony sambah converter."""
 
-import earthaccess
-from batchee.harmony.util import _group_batch_indices
-from batchee.tempo_filename_parser import get_batch_indices
 from harmony import BBox, CapabilitiesRequest, Collection
 
 from tests.conftest import AutotesterRequest
 from tests.umm_g_utilities import (
-    generate_near_full_temporal_range,
     generate_near_full_variable_subset,
-    generate_partial_spatial_box,
-    get_granule_filename,
 )
 
 
