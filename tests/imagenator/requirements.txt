@@ -1,2 +1,3 @@
 # include common requirements.
 -r ../common_requirements.txt
+harmony-filtering-service>=0.4.0
