@@ -28,8 +28,8 @@ def test_imagenator_l2(failed_tests, harmony_client, service_collection):
         capabilities = harmony_client.submit(cap_request)
         selected_variables = generate_near_full_variable_subset(capabilities)
 
- 
-        if service_collection['concept_id'] == 'C1274189926-LARC_CLOUD':
+        print(service_collection['concept_id'])
+        if service_collection['concept_id'] == 'C1262899916-LARC_CLOUD':
             variable="product/vertical_column_stratosphere"
         else:
             variable = selected_variables[0]
