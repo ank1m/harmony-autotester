@@ -1,6 +1,6 @@
-"""pytest suite for Harmony sambah converter."""
+"""pytest suite for Harmony imagenator converter."""
 
-from harmony import BBox, CapabilitiesRequest, Collection
+from harmony import CapabilitiesRequest, Collection
 
 from tests.conftest import AutotesterRequest
 from tests.umm_g_utilities import (
@@ -28,10 +28,14 @@ def test_imagenator_l2(failed_tests, harmony_client, service_collection):
         )
         capabilities = harmony_client.submit(cap_request)
         selected_variables = generate_near_full_variable_subset(capabilities)
-        
+        print(selected_variables)
+        products = [x for x in selected_variables if x.startswith("product/")]
+        print(products)
+        pos = int(len(products)/2)
+        print(f'var {products[pos]}')
         harmony_request = AutotesterRequest(
             collection=Collection(id=service_collection['concept_id']),
-            variables=selected_variables[0],
+            variables=selected_variables[pos],
             max_results=1,
             format="image/png"
         )
