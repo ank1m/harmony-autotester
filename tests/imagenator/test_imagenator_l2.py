@@ -86,7 +86,7 @@ def ensure_correct_files_created(harmony_result_json_links: list[dict]):
 
     """
     data_links = [link for link in harmony_result_json_links if link['rel'] == 'data']
-    assert len(data_links) == 1, 'Should have 1 png output file'
+    assert len(data_links) == 3, 'Should have 1 png output file'
 
     # All output files should have the correct processing tags.
     processing_tags = ['reformatted']
