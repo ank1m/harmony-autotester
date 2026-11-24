@@ -57,7 +57,7 @@ def test_imagenator_l2(failed_tests, harmony_client, service_collection):
         assert len(filtering_variables) > 0, (
             f"Harmony request failed: {service_collection['concept_id']} has no filtering variables"
         )
- 
+        print(f"Using variable {filtering_variables[0]} for collection {service_collection['concept_id']}")
         harmony_request = AutotesterRequest(
             collection=Collection(id=service_collection['concept_id']),
             variables=filtering_variables[0],
