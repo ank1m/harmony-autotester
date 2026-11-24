@@ -1,4 +1,7 @@
 """pytest suite for Harmony imagenator converter."""
+import json
+from urllib import request
+from typing import Any
 from harmony import CapabilitiesRequest, Collection
 
 from tests.conftest import AutotesterRequest
@@ -6,6 +9,30 @@ from tests.umm_g_utilities import (
     generate_near_full_variable_subset,
 )
 
+def get_filter_variables(
+    capabilities: dict[str, Any],
+) -> list[str]:
+    """Returns list of variables that can be used for filtering
+
+    Removes one variable from the full variable list to avoid
+    requesting all variables during subsetting tests.
+    """
+    vars = []
+    variables = capabilities.get('variables')
+    # !! set URL based on E
+    cmr_url="https://cmr.uat.earthdata.nasa.gov/search/variables.umm_json?page_size=100"
+    for variable in variables:
+        cmr_url += f"&concept_id={variable['href'].split('/')[-1]}"
+    cmr_response = request.urlopen(cmr_url)
+    cmr_results = json.loads(cmr_response.read().decode('utf-8'))
+    for item in cmr_results['items']:
+        umm = item.get('umm', None)
+        rurl = umm.get('RelatedURLs', None)
+        if rurl:
+            for r in rurl:
+                if r['URLContentType'] == 'VisualizationURL':
+                    vars.append(umm['Definition'])
+    return vars
 
 def test_imagenator_l2(failed_tests, harmony_client, service_collection):
     """Run a request against the imagenator_l2 chain and make sure it is successful.
@@ -26,16 +53,14 @@ def test_imagenator_l2(failed_tests, harmony_client, service_collection):
             collection_id=service_collection['concept_id']
         )
         capabilities = harmony_client.submit(cap_request)
-        selected_variables = generate_near_full_variable_subset(capabilities)
-
-        print(service_collection['concept_id'])
-        if service_collection['concept_id'] == 'C1262899916-LARC_CLOUD':
-            variable="product/vertical_column_stratosphere"
-        else:
-            variable = selected_variables[0]
+        filtering_variables = get_filter_variables(capabilities)
+        assert len(filtering_variables) > 0, (
+            f"Harmony request failed: {service_collection['concept_id']} has no filtering variables"
+        )
+ 
         harmony_request = AutotesterRequest(
             collection=Collection(id=service_collection['concept_id']),
-            variables=variable,
+            variables=filtering_variables[0],
             max_results=1,
             format="image/png"
         )
@@ -43,7 +68,7 @@ def test_imagenator_l2(failed_tests, harmony_client, service_collection):
         # Submit the job and get the JSON output once completed
         harmony_job_id = harmony_client.submit(harmony_request)
         result_json = harmony_client.result_json(harmony_job_id)
-        print(result_json)
+
         # Check the response was successful
         assert result_json['status'] == 'successful', (
             f'Harmony request failed:\n\n{result_json["message"]}'
@@ -86,7 +111,7 @@ def ensure_correct_files_created(harmony_result_json_links: list[dict]):
 
     """
     data_links = [link for link in harmony_result_json_links if link['rel'] == 'data']
-    assert len(data_links) == 3, 'Should have 1 png output file'
+    assert len(data_links) == 3, 'Should have 3 png output file'
 
     # All output files should have the correct processing tags.
     processing_tags = ['reformatted']
