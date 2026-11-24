@@ -1,7 +1,7 @@
 """pytest suite for Harmony imagenator converter."""
 
 from harmony import CapabilitiesRequest, Collection
-from harmony_filtering_service.config_validator import load_and_validate_config
+from filtering.config_validator import load_and_validate_config
 
 from tests.conftest import AutotesterRequest
 from tests.umm_g_utilities import (
