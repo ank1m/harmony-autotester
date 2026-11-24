@@ -1,7 +1,5 @@
 """pytest suite for Harmony imagenator converter."""
-
 from harmony import CapabilitiesRequest, Collection
-#from filtering.config_validator import load_and_validate_config
 
 from tests.conftest import AutotesterRequest
 from tests.umm_g_utilities import (
@@ -29,11 +27,15 @@ def test_imagenator_l2(failed_tests, harmony_client, service_collection):
         )
         capabilities = harmony_client.submit(cap_request)
         selected_variables = generate_near_full_variable_subset(capabilities)
-        #settings = load_and_validate_config("config/settings_schema.json", "config/config_schema.json")
-        #print(settings)
+
+ 
+        if service_collection['concept_id'] == 'C1274189926-LARC_CLOUD'
+            variable="product/vertical_column_stratosphere"
+        else:
+            variable = selected_variables[0]
         harmony_request = AutotesterRequest(
             collection=Collection(id=service_collection['concept_id']),
-            variables=selected_variables[0],
+            variables=variable,
             max_results=1,
             format="image/png"
         )
